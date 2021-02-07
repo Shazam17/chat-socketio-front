@@ -44,8 +44,7 @@ class ChatScreen extends Component {
     socketio = null;
 
     addMessage(message){
-        console.log(message);
-        this.setState({...this.state, messages: [...this.state.messages,message]})
+        this.setState({...this.state, messages: [...this.state.messages,message], text:  message.side ? '' :this.state.message})
     }
 
     componentDidMount() {
@@ -92,10 +91,16 @@ class ChatScreen extends Component {
         return (
             <div style={styleSheet.backStyle}>
 
-                <div>
-                    <p>enter name</p>
-                    <input style={styleSheet.messagesContainer} type="text" size="40" onChange={this.handleUserNameChange.bind(this)}/>
-                    <div style={styleSheet.sendButton} onClick={this.handleChangeUserName.bind(this)}>send</div>
+                <div style={styleSheet.composer}>
+                    <input
+                        style={styleSheet.input}
+                        type="text"
+                        size="40"
+                        onChange={this.handleUserNameChange.bind(this)}
+                        placeholder={"Введите имя"}/>
+                    <div style={styleSheet.sendButton} onClick={this.handleClick.bind(this)}>
+                        <img src="https://img.icons8.com/plumpy/48/000000/filled-sent.png" style={styleSheet.sendIcon}/>
+                    </div>
                 </div>
 
             <div style={styleSheet.messagesContainer}>
@@ -104,8 +109,17 @@ class ChatScreen extends Component {
                 })}
             </div>
                 <div style={styleSheet.composer}>
-                    <input style={styleSheet.input} type="text" size="40" value={this.state.text} onChange={this.handleChange.bind(this)} placeholder={"Сообщение"}/>
-                    <div style={styleSheet.sendButton} onClick={this.handleClick.bind(this)}>send</div>
+                    <input
+                        style={styleSheet.input}
+                        type="text"
+                        size="40"
+                        value={this.state.text}
+                        onChange={this.handleChange.bind(this)}
+                        placeholder={"Сообщение"}/>
+
+                    <div style={styleSheet.sendButton} onClick={this.handleClick.bind(this)}>
+                        <img src="https://img.icons8.com/plumpy/48/000000/filled-sent.png" style={styleSheet.sendIcon}/>
+                    </div>
                 </div>
 
             </div>
@@ -115,17 +129,29 @@ class ChatScreen extends Component {
 }
 
 const styleSheet = {
+    sendIcon: {
+        width: '30px',
+        height: '30px',
+        margin: '5px'
+    },
+    sendButton: {
+        borderRadius: '20px',
+        width: '40px',
+        height: '40px',
+        backgroundColor: '#E9C46A',
+        display:'flex',
+    },
     input: {
         backgroundColor: '#FFFFFF',
-        // borderWidth: '1px',
-        // borderColor: '#E76F51',
         borderRadius: '12px',
+        borderWidth: '0px',
         padding: '5px',
         paddingLeft: '10px',
         fontWeight: '500',
         marginRight: '25px',
         display: 'block',
-        fontSize: '1em'
+        fontSize: '1em',
+
     },
     composer: {
         display: 'flex',
@@ -139,27 +165,22 @@ const styleSheet = {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
 
     },
     messagesContainer: {
         backgroundColor: '#2A9D8F',
+        borderRadius: '5px',
         width: '75%',
         margin: '0 auto',
         flex:'1',
-        border: '1px solid black',
         display: 'flex',
         flexDirection: 'column',
         justifyContent:'flex-start',
         alignItems: 'flex-start',
         padding: '10px'
     },
-    sendButton: {
-        height: '25px',
-        width: '50px',
-        backgroundColor: 'grey',
-        display:'block',
-    }
+
 
 }
 
