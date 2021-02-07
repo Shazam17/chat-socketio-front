@@ -6,10 +6,11 @@ import io from 'socket.io-client';
 class MessageBubble extends Component {
 
     render() {
-        let {side, text} = this.props.message;
+        let {side, text,name} = this.props.message;
         return (
             <div style={!side ? {} : messageBubbleStyles.bubbleWrapper}>
                 <div style={messageBubbleStyles.bubble}>
+                   <div style={messageBubbleStyles.usernameText(side)}>{name}</div>
                     <div style={messageBubbleStyles.text}>{text}</div>
                 </div>
             </div>
@@ -31,7 +32,14 @@ const messageBubbleStyles = {
     },
     text: {
         display: 'block'
-    }
+    },
+    usernameText: (side) =>  ({
+        color: '#264653',
+        textAlign: side ? 'end' : 'start',
+        marginLeft: '10px',
+        marginRight: '10px',
+
+    })
 }
 
 class ChatScreen extends Component {
@@ -39,7 +47,8 @@ class ChatScreen extends Component {
     state = {
         text: '',
         userName: '',
-        messages: []
+        messages: [],
+        nameSetted: false
     }
     socketio = null;
 
@@ -59,7 +68,7 @@ class ChatScreen extends Component {
         });
         this.socketio.on('new_message', (arg) => {
             // console.log(`new message`)
-            this.addMessage({text: arg.message, side: false})
+            this.addMessage({text: arg.message, side: false, name: arg.name})
             // console.log(arg);
         })
     }
@@ -74,8 +83,13 @@ class ChatScreen extends Component {
     }
 
     handleClick() {
-        // console.log(this.state);
-        this.addMessage({text: this.state.text, side: true})
+        if(!this.state.nameSetted){
+            alert("Укажите имя");
+        }
+        if(this.state.text.length < 1){
+            return;
+        }
+        this.addMessage({text: this.state.text, side: true, name: this.state.userName})
         this.socketio.emit('send_message',{
             message: this.state.text,
                 client: this.state.userName
@@ -83,7 +97,14 @@ class ChatScreen extends Component {
     }
 
     handleChangeUserName() {
-        this.socketio.emit('change_username',{username: this.state.userName});
+        if(this.state.userName.length > 1){
+            this.socketio.emit('change_username',{username: this.state.userName});
+            this.setState({...this.state, nameSetted: true});
+            alert('Имя успешно установлено');
+
+        } else {
+            alert('Имя не может быть пустым');
+        }
     }
 
 
@@ -98,7 +119,7 @@ class ChatScreen extends Component {
                         size="40"
                         onChange={this.handleUserNameChange.bind(this)}
                         placeholder={"Введите имя"}/>
-                    <div style={styleSheet.sendButton} onClick={this.handleClick.bind(this)}>
+                    <div style={styleSheet.sendButton} onClick={this.handleChangeUserName.bind(this)}>
                         <img src="https://img.icons8.com/plumpy/48/000000/filled-sent.png" style={styleSheet.sendIcon}/>
                     </div>
                 </div>
