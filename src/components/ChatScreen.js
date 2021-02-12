@@ -1,7 +1,15 @@
 import {connect} from "react-redux";
-import {Component} from "react";
+import React,{Component} from "react";
+
 import io from 'socket.io-client';
 
+const colorPallete = {
+    INDIGO: '#264653',
+    GREEN: '#2A9D8F',
+    YELLOW: '#E9C46A',
+    BROWN: '#F4A261',
+    RED: '#E76F51'
+}
 
 class MessageBubble extends Component {
 
@@ -17,6 +25,7 @@ class MessageBubble extends Component {
         )
     }
 }
+
 
 const messageBubbleStyles = {
     bubbleWrapper: {
@@ -48,7 +57,9 @@ class ChatScreen extends Component {
         text: '',
         userName: '',
         messages: [],
-        nameSetted: false
+        nameSetted: false,
+        personConnected: []
+
     }
     socketio = null;
 
@@ -56,25 +67,33 @@ class ChatScreen extends Component {
         this.setState({...this.state, messages: [...this.state.messages,message], text:  message.side ? '' :this.state.message})
     }
 
+    addPerson(person){
+        if(!this.state.personConnected.find((item) => item.id === person.id)){
+            this.setState({...this.state, personConnected: [...this.state.personConnected, person]});
+        }else{
+            this.setState({...this.state, personConnected: [...this.state.personConnected.filter((item) => item.id !== person.id), person]});
+        }
+    }
+
+    removePerson(person){
+       this.setState({...this.state,personConnected: this.state.personConnected.filter((item) => item.id !== person.id)});
+    }
+
     componentDidMount() {
         this.socketio = io.connect('http://localhost:4000');
 
-        this.socketio.on('hi', (arg) => {
-            // console.log(arg);
-        })
-        this.socketio.on('connection',(socket) => {
-            // console.log('new user connected');
-
-        });
         this.socketio.on('new_message', (arg) => {
-            // console.log(`new message`)
             this.addMessage({text: arg.message, side: false, name: arg.name})
-            // console.log(arg);
+        })
+        this.socketio.on('new_person', (arg) => {
+            this.addPerson(arg);
+        })
+        this.socketio.on('user_disconnect',(arg) => {
+            this.removePerson(arg);
         })
     }
 
     handleChange(event) {
-        // console.log(event);
         this.setState({...this.state, text: event.target.value});
     }
 
@@ -83,7 +102,7 @@ class ChatScreen extends Component {
     }
 
     handleClick() {
-        if(!this.state.nameSetted){
+        if(!this.state.nameSetted && this.state.userName.length < 1){
             alert("Укажите имя");
         }
         if(this.state.text.length < 1){
@@ -111,7 +130,6 @@ class ChatScreen extends Component {
     render(){
         return (
             <div style={styleSheet.backStyle}>
-
                 <div style={styleSheet.composer}>
                     <input
                         style={styleSheet.input}
@@ -123,12 +141,19 @@ class ChatScreen extends Component {
                         <img src="https://img.icons8.com/plumpy/48/000000/filled-sent.png" style={styleSheet.sendIcon}/>
                     </div>
                 </div>
-
-            <div style={styleSheet.messagesContainer}>
-                {this.state.messages.map((item) => {
-                    return (<MessageBubble message={item}/>)
-                })}
+            <div style={styleSheet.centerBlock}>
+                <div style={styleSheet.connectedPersonPanel}>
+                    {this.state.personConnected.map((item) => {
+                        return (<p>{item.name}</p>)
+                    })}
+                </div>
+                <div style={styleSheet.messagesContainer}>
+                    {this.state.messages.map((item) => {
+                        return (<MessageBubble message={item}/>)
+                    })}
+                </div>
             </div>
+
                 <div style={styleSheet.composer}>
                     <input
                         style={styleSheet.input}
@@ -150,6 +175,18 @@ class ChatScreen extends Component {
 }
 
 const styleSheet = {
+
+    connectedPersonPanel: {
+        backgroundColor: colorPallete.GREEN,
+        marginRight: '10px',
+        padding: '10px'
+
+    },
+    centerBlock: {
+        flex:'1',
+        display: 'flex',
+        width: '75%'
+    },
     sendIcon: {
         width: '30px',
         height: '30px',
@@ -159,7 +196,7 @@ const styleSheet = {
         borderRadius: '20px',
         width: '40px',
         height: '40px',
-        backgroundColor: '#E9C46A',
+        backgroundColor: colorPallete.YELLOW,
         display:'flex',
     },
     input: {
@@ -190,7 +227,7 @@ const styleSheet = {
 
     },
     messagesContainer: {
-        backgroundColor: '#2A9D8F',
+        backgroundColor: colorPallete.GREEN,
         borderRadius: '5px',
         width: '75%',
         margin: '0 auto',
@@ -214,4 +251,6 @@ const mapDispatchToProps = (dispatch) => {
     return {};
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(ChatScreen);
+export default connect(mapStateToProps,{
+
+})(ChatScreen);
